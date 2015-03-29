@@ -25,7 +25,7 @@ CREATE TABLE persons (
    last_name  varchar(24),
    address    varchar(128),
    email      varchar(128),
-   phone      char(10),
+   phone      char(16),
    PRIMARY KEY(person_id),
    UNIQUE (email)
 );
