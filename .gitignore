@@ -42,7 +42,7 @@ var/
 *.spec
 
 # Django migrations
-*/migrations
+migrations
 
 # Django database
 *db.sqlite3
