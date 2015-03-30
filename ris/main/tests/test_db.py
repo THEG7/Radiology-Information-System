@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
 from main.models import Person, User, FamilyDoctor, PacsImage, RadiologyRecord
+from django.contrib.auth.models import User as AuthUser
 
 class DatabaseTestCase(TestCase):
     """
@@ -40,19 +41,28 @@ class DatabaseTestCase(TestCase):
         self.assertEquals(patient.first_name, self.patient['first_name'])
         self.assertEquals(patient.last_name, self.patient['last_name'])
         self.assertEquals(patient.email, self.patient['email'])
-    #
-    # def test_create_user(self):
-    #     try:
-    #         person = Person.objects.create(user = self.user,
-    #             github_username = GITHUB_USERNAME,
-    #             bio = BIO)
-    #     except:
-    #         self.assertFalse(True, 'Author object not created and inserted into db')
-    #
-    # def test_author_delete_by_id(self):
-    #     author = Author.objects.create(user = self.user)
-    #     try:
-    #         query = Author.objects.filter(id = author.id).delete()
-    #         self.assertEquals(query, None)
-    #     except:
-    #         self.assertFalse(True, 'Author deletion failed')
+
+    def test_create_user(self):
+        patient = Person.objects.create(
+            first_name=self.patient['first_name'],
+            last_name=self.patient['last_name'],
+            address=self.patient['address'],
+            email=self.patient['email'],
+            phone=self.patient['phone'])
+
+        auth_user = AuthUser.objects.create(
+            username='username',
+            password='password'
+        )
+        user = User.objects.create(
+            auth_user = auth_user,
+            person = patient,
+            username = auth_user.username,
+            password = auth_user.password,
+            class_field = 'p'
+        )
+
+        #retrieve models
+        self.assertEquals((User.objects.get(username=user.username)).username, user.username)
+        self.assertEquals((AuthUser.objects.get(id=auth_user.id)).id, auth_user.id)
+        self.assertEquals((Person.objects.get(id=patient.id)).id, patient.id)

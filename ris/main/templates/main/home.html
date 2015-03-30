@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% load bootstrap3 %}
+
+    <div>
+      <h1>{% block title %}Radiology Information System{% endblock %}</h1>
+    </div>
+
+    {% bootstrap_messages %}
+
+
+    {% block content %}
+      {% if user.is_authenticated %}
+        <span class="pull-right"><a href="/ris/logout/">Logout</a></span>
+      {% else %}
+        <span class="pull-right"><a href="/ris/login/">Login</a></span>
+      {% endif %}
+    {% endblock %}

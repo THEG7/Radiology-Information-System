@@ -33,9 +33,12 @@ INSTALLED_APPS = (
     'config',
     'main',
     'grappelli',
+    'bootstrap3',
     'django.contrib.admin',
+    'django.contrib.admindocs',
     'django.contrib.auth',
     'django.contrib.contenttypes',
+    'django.contrib.sites',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
@@ -79,6 +82,12 @@ DATABASES = {
     }
 }
 
+TEMPLATE_DIRS = (
+    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
+    # Always use forward slashes, even on Windows.
+    # Don't forget to use absolute paths, not relative paths.
+)
+
 # Internationalization
 # https://docs.djangoproject.com/en/1.7/topics/i18n/
 
@@ -100,4 +109,11 @@ STATIC_URL = '/static/'
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
-GRAPPELLI_ADMIN_TITLE = "Social Distribution"
+GRAPPELLI_ADMIN_TITLE = "Radiology-Information-System"
+
+# Settings for django-bootstrap3
+BOOTSTRAP3 = {
+    'error_css_class': 'bootstrap3-error',
+    'required_css_class': 'bootstrap3-required',
+    'javascript_in_head': True,
+}

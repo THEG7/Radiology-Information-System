@@ -3,17 +3,17 @@ from __future__ import unicode_literals
 from django.db import models
 from django.contrib.auth.models import User as AuthUser
 from django.core.exceptions import ValidationError
-from phonenumber_field.modelfields import PhoneNumberField
 import datetime
+from uuidfield import UUIDField
 
 
 class Person(models.Model):
-    person_id = models.AutoField(primary_key=True)
-    first_name = models.CharField(max_length=24)
-    last_name = models.CharField(max_length=24)
-    address = models.CharField(max_length=128)
+    id = models.AutoField(primary_key=True, db_column="person_id")
+    first_name = models.CharField(max_length=32)
+    last_name = models.CharField(max_length=32)
+    address = models.CharField(max_length=255, null=True, blank=True)
     email = models.CharField(unique=True, max_length=128)
-    phone = models.CharField(max_length=16)
+    phone = models.CharField(max_length=14, null=True, blank=True)
 
     class Meta:
         # managed = False
@@ -28,9 +28,9 @@ class User(models.Model):
         ('r', 'radiologist'),
     )
     auth_user = models.OneToOneField(AuthUser, null=True)
-    user_name = models.CharField(primary_key=True, max_length=24)
-    password = models.CharField(max_length=24, blank=True)
-    class_field = models.CharField(db_column='class', max_length=1, blank=True, choices=CLASS_CHOICES, default='a')  # Field renamed because it was a Python reserved word.
+    username = models.CharField(primary_key=True, max_length=24, db_column="user_name")
+    password = models.CharField(max_length=128, blank=True)
+    class_field = models.CharField(db_column='class', max_length=1, choices=CLASS_CHOICES, blank=True, default='p')  # Field renamed because it was a Python reserved word.
     person = models.ForeignKey(Person, db_column="person_id", null=True)
     date_registered = models.DateField(blank=True, null=True, default=datetime.date.today)
 
@@ -51,9 +51,9 @@ class FamilyDoctor(models.Model):
 class PacsImage(models.Model):
     image_id = models.AutoField(primary_key=True)
     record = models.ForeignKey('RadiologyRecord', db_column="record_id", null=True)
-    thumbnail = models.TextField(blank=True)
-    regular_size = models.TextField(blank=True)
-    full_size = models.TextField(blank=True)
+    thumbnail = models.TextField(null=True, blank=True)
+    regular_size = models.TextField(null=True, blank=True)
+    full_size = models.TextField(null=True, blank=True)
 
     class Meta:
         # managed = False

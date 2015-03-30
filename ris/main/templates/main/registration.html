@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load bootstrap3 %}
+{% block title %}Radiology Information System{% endblock %}
+
+{% block content %}
+
+    <h1>Register</h1>
+    <a href="/ris/">Home</a></span>
+
+    {% if registered %}
+    RIS: <strong>thank you for registering!</strong>
+    <a href="/ris/">Return to the homepage.</a><br />
+    {% else %}
+
+    <form id="user_form" class="form-horizontal" method="post" action="/ris/register/"
+            enctype="multipart/form-data">
+
+        {% csrf_token %}
+
+        <!-- Display each form. The as_p method wraps each element in a paragraph
+             (<p>) element. This ensures each element appears on a new line,
+             making everything look neater. -->
+
+        {% bootstrap_form person_form layout="horizontal" %}
+        {% bootstrap_form auth_user_form layout="horizontal" %}
+        {% bootstrap_form user_form layout="horizontal" %}
+
+        <!-- Provide a button to click to submit the form. -->
+        {% buttons submit='OK' reset='Cancel' layout='horizontal' %}{% endbuttons %}
+    </form>
+    {% endif %}
+{% endblock %}
