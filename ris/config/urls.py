@@ -8,7 +8,6 @@ urlpatterns = patterns('',
     # url(r'^blog/', include('blog.urls')),
 
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^grappelli/', include('grappelli.urls')),
     url(r'^ris/$', HomePageView.as_view(), name='home'),
     url(r'^ris/register/$', register, name='register'),
     url(r'^ris/login/$', user_login, name='login'),

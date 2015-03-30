@@ -4,7 +4,6 @@ from django.db import models
 from django.contrib.auth.models import User as AuthUser
 from django.core.exceptions import ValidationError
 import datetime
-from uuidfield import UUIDField
 
 
 class Person(models.Model):
