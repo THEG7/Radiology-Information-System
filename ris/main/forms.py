@@ -6,8 +6,9 @@ from django import forms
 from django.forms.formsets import BaseFormSet, formset_factory
 from bootstrap3.tests import TestForm
 from phonenumber_field.formfields import PhoneNumberField
+import datetime
 
-from main.models import User, Person
+from main.models import User, Person, RadiologyRecord, PacsImage, FamilyDoctor
 
 CLASS_CHOICES = (
     ('p', 'Patient'),
@@ -65,12 +66,22 @@ class PersonForm(forms.ModelForm):
         fields = ('first_name', 'last_name', 'address', 'email', 'phone')
 
 
-class UploadForm(forms.Form):
-    text1 = forms.CharField()
-    file1 = forms.FileField()
-    file2 = forms.FileField(required=False)
-    file3 = forms.FileField(widget=forms.ClearableFileInput)
-    file4 = forms.FileField(required=False, widget=forms.ClearableFileInput)
+class RadiologyRecordForm(forms.Form):
+    required_css_class = 'bootstrap3-req'
+    patient = forms.IntegerField(label='Patient ID')
+    doctor = forms.IntegerField(label='Doctor ID')
+    radiologist = forms.IntegerField(label='Radiologist ID')
+    test_type = forms.CharField(max_length=24, required=False)
+    prescribing_date = forms.DateField(initial=datetime.date.today)
+    test_date = forms.DateField(initial=datetime.date.today)
+    diagnosis = forms.CharField()
+    description = forms.CharField(required=False)
+
+
+
+class UploadImageForm(forms.Form):
+    required_css_class = 'bootstrap3-req'
+    image = forms.ImageField(required=False, label='Image')
 
 
 class ArticleForm(forms.Form):

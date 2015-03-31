@@ -5,21 +5,19 @@ from django.contrib.auth.models import User as AuthUser
 from daterange_filter.filter import DateRangeFilter
 # Model options
 class PersonOptions(admin.ModelAdmin):
-
     readonly_fields = ('id',)
 
-
-class AuthUserOptions(admin.TabularInline):
-    model = AuthUser
 
 class UserOptions(admin.ModelAdmin):
 
     list_display = ['class_field', 'auth_user', 'person', 'date_registered']
     list_editable = ['class_field', 'auth_user', 'person', 'date_registered']
     list_filter = ('class_field', ('date_registered', DateRangeFilter))
-    # inlines = [
-    #         AuthUserOptions,
-    #     ]
+
+
+class PacsImageOptions(admin.TabularInline):
+    model = PacsImage
+
 class RadiologyRecordOptions(admin.ModelAdmin):
     list_display = [
         'get_first_name',
@@ -30,9 +28,9 @@ class RadiologyRecordOptions(admin.ModelAdmin):
         'test_date',
         'diagnosis'
     ]
-    # inlines = [
-    #         PersonOptions,
-    #     ]
+    inlines = [
+            PacsImageOptions,
+    ]
     list_filter = (
         'diagnosis',
         ('test_date', DateRangeFilter),

@@ -7,13 +7,16 @@ from django.views.generic.base import TemplateView
 from django.contrib import messages
 from django.shortcuts import render, render_to_response
 from django.template import RequestContext
-from main.forms import AuthUserForm, UserProfileForm, PersonForm, UploadForm
-from main.models import Person, User
+from main.forms import AuthUserForm, UserProfileForm, PersonForm, RadiologyRecordForm, UploadImageForm
+from main.models import User, Person, RadiologyRecord, PacsImage, FamilyDoctor
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect, HttpResponse
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+import base64
 
 # Create your views here.
 
@@ -110,3 +113,54 @@ class HomePageView(TemplateView):
         context = super(HomePageView, self).get_context_data(**kwargs)
         messages.info(self.request, 'This is a demo of a message.')
         return context
+
+def create_radiology_record(request):
+    # template_name = 'main/create_record.html'
+
+    context = RequestContext(request)
+
+    # If it's a HTTP POST, we're interested in processing form data.
+    if request.method == 'POST':
+        rr_form = RadiologyRecordForm(data=request.POST)
+        image_form = UploadImageForm(request.POST,request.FILES)
+        if  rr_form.is_valid() and image_form.is_valid():
+
+            patient = Person.objects.get(id=rr_form.cleaned_data['patient'])
+            doctor = Person.objects.get(id=rr_form.cleaned_data['doctor'])
+            radiologist = Person.objects.get(id=rr_form.cleaned_data['radiologist'])
+
+
+            radiology_record = RadiologyRecord.objects.create(
+                patient=patient,
+                doctor=doctor,
+                radiologist=radiologist,
+                test_type = rr_form.cleaned_data['test_type'],
+                prescribing_date = rr_form.cleaned_data['prescribing_date'],
+                test_date = rr_form.cleaned_data['test_date'],
+                diagnosis = rr_form.cleaned_data['diagnosis'],
+                description = rr_form.cleaned_data['description'])
+
+            # image = image_form.cleaned_data['image']
+            # path = default_storage.save('temp_img.txt', ContentFile(image.read()))
+            image_b64 = base64.b64encode(image_form.cleaned_data['image'].read())
+            print image_b64
+            pacs_image = PacsImage.objects.create(
+                record=radiology_record,
+                full_size=image_b64)
+            return HttpResponseRedirect('/ris/')
+
+        else:
+            print rr_form.errors, image_form.errors
+
+    # Not a HTTP POST, so we render our form using two ModelForm instances.
+    # These forms will be blank, ready for user input.
+    else:
+        rr_form = RadiologyRecordForm()
+        image_form = UploadImageForm()
+
+
+    # Render the template depending on the context.
+    return render_to_response(
+            'main/create_record.html',
+            {'rr_form': rr_form, 'image_form': image_form},
+            context)
