@@ -1,22 +1,20 @@
 from __future__ import unicode_literals
-from django.core.files.storage import default_storage
 
-from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.db.models.fields.files import FieldFile
 from django.views.generic.base import TemplateView
-from django.contrib import messages
 from django.shortcuts import render, render_to_response
 from django.template import RequestContext
-from main.forms import AuthUserForm, UserProfileForm, PersonForm, RadiologyRecordForm, UploadImageForm
-from main.models import User, Person, RadiologyRecord, PacsImage, FamilyDoctor
 
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect, HttpResponse
-from django.core.files.storage import default_storage
-from django.core.files.base import ContentFile
+from PIL import Image, ImageOps
 import base64
+import cStringIO
+
+from main.forms import AuthUserForm, UserProfileForm, PersonForm, RadiologyRecordForm, UploadImageForm
+from main.models import User, Person, RadiologyRecord, PacsImage, FamilyDoctor
 
 # Create your views here.
 
@@ -129,7 +127,6 @@ def create_radiology_record(request):
             doctor = Person.objects.get(id=rr_form.cleaned_data['doctor'])
             radiologist = Person.objects.get(id=rr_form.cleaned_data['radiologist'])
 
-
             radiology_record = RadiologyRecord.objects.create(
                 patient=patient,
                 doctor=doctor,
@@ -140,13 +137,21 @@ def create_radiology_record(request):
                 diagnosis = rr_form.cleaned_data['diagnosis'],
                 description = rr_form.cleaned_data['description'])
 
-            # image = image_form.cleaned_data['image']
-            # path = default_storage.save('temp_img.txt', ContentFile(image.read()))
-            image_b64 = base64.b64encode(image_form.cleaned_data['image'].read())
-            print image_b64
+            # build base64 encoding for images
+            image = image_form.cleaned_data['image'].read()
+            image_b64 = base64.b64encode(image)
+
+            thumb = ImageOps.fit(Image.open(cStringIO.StringIO(image)), (200,200), Image.ANTIALIAS)
+            thumb_buffer = cStringIO.StringIO()
+            thumb.save(thumb_buffer, format="JPEG")
+            thumb_b64 = base64.b64encode(thumb_buffer.getvalue())
+
+            # add pacs image to database
             pacs_image = PacsImage.objects.create(
                 record=radiology_record,
-                full_size=image_b64)
+                full_size=image_b64,
+                thumbnail=thumb_b64
+            )
             return HttpResponseRedirect('/ris/')
 
         else:
