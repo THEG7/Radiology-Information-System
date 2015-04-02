@@ -36,14 +36,14 @@ INSTALLED_APPS = (
     'django_admin_bootstrapped.bootstrap3',
     'django_admin_bootstrapped',
     'daterange_filter',
+    'django_tables2',
     'django.contrib.admin',
     'django.contrib.admindocs',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
-
+    'django.contrib.staticfiles'
 )
 
 # AUTH_USER_MODEL = 'main.User'
@@ -107,14 +107,28 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_PATH = os.path.abspath(os.path.join(BASE_DIR, 'static'))
+STATICFILES_DIRS = (STATIC_PATH,)
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
-GRAPPELLI_ADMIN_TITLE = "Radiology-Information-System"
+TEMPLATE_CONTEXT_PROCESSOR = (
+    'django.core.context_processors.request',
+    'django.core.context_processors.static'
+)
 
 # Settings for django-bootstrap3
 BOOTSTRAP3 = {
     'error_css_class': 'bootstrap3-error',
     'required_css_class': 'bootstrap3-required',
     'javascript_in_head': True,
+}
+
+DAB_FIELD_RENDERER = 'django_admin_bootstrapped.renderers.BootstrapFieldRenderer'
+
+from django.contrib import messages
+MESSAGE_TAGS = {
+            messages.SUCCESS: 'alert-success success',
+            messages.WARNING: 'alert-warning warning',
+            messages.ERROR: 'alert-danger error'
 }

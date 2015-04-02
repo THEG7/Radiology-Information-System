@@ -1,18 +1,148 @@
 {% extends 'base.html' %}
 
-{% load bootstrap3 %}
+{% block content %}
 
-    <div>
-      <h1>{% block title %}Radiology Information System{% endblock %}</h1>
+<div class="navbar navbar-default">
+  <div class="navbar-inner">
+
+    <div class="navbar-header">
+
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#content-navbar-collapse" aria-expanded="false" aria-controls="navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+
+
+
+      <span class="navbar-brand">Search Records</span>
+
+
     </div>
 
-    {% bootstrap_messages %}
+    <div id="content-navbar-collapse" class="navbar-collapse collapse">
+
+      <ul class="nav navbar-nav navbar-right">
+        <li class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown" aria-expanded="false">Date Range<span class="caret"></span></a>
+          <ul class="dropdown-menu pull-right scrollable-dropdown-menu">
+            <span>
+              <div class="container">
+                <p> Date Diagnosed <input type="checkbox"></p>
+
+                <div class="form-group">
+
+                  <div class='col-md-2'>
+                    <p>From</p>
+                    <div class="form-group">
+                      <div class='input-group date' id='datetimepicker1'>
+                        <input type='text' class="form-control" />
+                        <span class="input-group-addon">
+                          <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class='col-md-2'>
+                    <p>To</p>
+                    <div class="form-group">
+                      <div class='input-group date' id='datetimepicker2'>
+                        <input type='text' class="form-control" />
+                        <span class="input-group-addon">
+                          <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="container">
+                <p> Prescribing Date <input type="checkbox"></p>
+
+                <div class="form-group">
+
+                  <div class='col-md-2'>
+                    <p>From</p>
+                    <div class="form-group">
+                      <div class='input-group date' id='datetimepicker3'>
+                        <input type='text' class="form-control" />
+                        <span class="input-group-addon">
+                          <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class='col-md-2'>
+                    <p>To</p>
+                    <div class="form-group">
+                      <div class='input-group date' id='datetimepicker4'>
+                        <input type='text' class="form-control" />
+                        <span class="input-group-addon">
+                          <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </span>
+
+          </ul>
+        </li>
+      </ul>
 
 
-    {% block content %}
-      {% if user.is_authenticated %}
-        <span class="pull-right"><a href="/ris/logout/">Logout</a></span>
-      {% else %}
-        <span class="pull-right"><a href="/ris/login/">Login</a></span>
-      {% endif %}
-    {% endblock %}
+
+
+      <form class="navbar-form navbar-right" role="search" id="changelist-search" action="" method="get">
+        <div class="form-group"><!-- DIV needed for valid HTML -->
+          <input type="text" class="form-control search-query" placeholder="Search" size="25" name="q" value="" id="searchbar">
+        </div>
+        <button type="submit" class="btn btn-default">Search</button>
+
+
+      </form>
+      <script type="text/javascript">document.getElementById("searchbar").focus();</script>
+
+
+    </div>
+
+  </div>
+</div>
+
+
+
+<script type="text/javascript">
+$(function () {
+  $('.input-group.date').datetimepicker(
+    {
+      format: 'yyyy-mm-dd',
+      minView: 'month',
+    }
+  );
+  // $('#datetimepicker2').datetimepicker(
+  //   {
+  //     format: 'yyyy-mm-dd',
+  //     minView: 'month',
+  //   }
+  // );
+  $("#datetimepicker1").on("dp.change", function (e) {
+    $('#datetimepicker2').data("DateTimePicker").minDate(e.date);
+  });
+  $("#datetimepicker2").on("dp.change", function (e) {
+    $('#datetimepicker1').data("DateTimePicker").maxDate(e.date);
+  });
+  $("#datetimepicker3").on("dp.change", function (e) {
+    $('#datetimepicker4').data("DateTimePicker").minDate(e.date);
+  });
+  $("#datetimepicker4").on("dp.change", function (e) {
+    $('#datetimepicker3').data("DateTimePicker").maxDate(e.date);
+  });
+});
+
+
+</script>
+
+
+{% endblock %}

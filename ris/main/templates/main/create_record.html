@@ -2,12 +2,8 @@
 
 {% load bootstrap3 %}
 
-{% block title %}
-    Add Radiology Record
-{% endblock %}
-
 {% block content %}
-
+    <h2>Add Radiology Record </h2>
     <form role="form" method="post" enctype="multipart/form-data" {% if layout != 'vertical' %}class="form-{{ layout }}"{% endif %}>
         {% csrf_token %}
         {% bootstrap_form rr_form layout=layout %}

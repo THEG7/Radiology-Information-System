@@ -1,12 +1,9 @@
-{% extends 'base.html' %}
+{% extends 'main/login.html' %}
+
 {% load bootstrap3 %}
-{% block title %}Radiology Information System{% endblock %}
 
 {% block content %}
-
-    <h1>Register</h1>
-    <a href="/ris/">Home</a></span>
-
+    <h2> Register </h2>
     {% if registered %}
     RIS: <strong>thank you for registering!</strong>
     <a href="/ris/">Return to the homepage.</a><br />

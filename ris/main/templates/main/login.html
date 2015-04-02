@@ -1,11 +1,29 @@
 {% extends 'base.html' %}
+
+{% load url from future %}
+
 {% load bootstrap3 %}
-{% block title %}Radiology Information System{% endblock %}
+
+{% block bootstrap3_content %}
+
+{% block navmore %}
+<div id="header-navbar-collapse" class="navbar-collapse collapse navbar-right">
+  <ul class="nav navbar-nav">
+
+    <li>
+      <a href="/ris/register/">
+      <i class="glyphicon glyphicon-plus"></i>
+      Register
+      <span class="mini quiet"></span>
+      </a>
+    </li>
+
+  </ul>
+</div><!--/.nav-collapse -->
+{% endblock %}
 
 {% block content %}
-    <h1>Login</h1>
-    <span><a href="/ris/register/">Register</a></span>
-
+    <h2> Login </h2>
     <form id="user_form" class="form-horizontal" method="post" action="/ris/login/"
             enctype="multipart/form-data">
 
@@ -21,4 +39,5 @@
         <!-- Provide a button to click to submit the form. -->
         {% buttons submit='OK' reset='Cancel' layout='horizontal' %}{% endbuttons %}
     </form>
+{% endblock %}
 {% endblock %}

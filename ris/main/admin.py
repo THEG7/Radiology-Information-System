@@ -36,9 +36,20 @@ class RadiologyRecordOptions(admin.ModelAdmin):
         ('test_date', DateRangeFilter),
         ('prescribing_date', DateRangeFilter)
     )
+
+    search_fields = [
+        'patient__first_name',
+        'patient__last_name',
+        'radiologist__first_name',
+        'radiologist__last_name',
+        'doctor__first_name',
+        'doctor__last_name',
+        'diagnosis',
+        'description']
+
     def get_first_name(self, obj):
         return obj.patient.first_name
-    get_first_name.short_description = 'Fist Name'
+    get_first_name.short_description = 'First Name'
     get_first_name.admin_order_field = 'patient__first_name'
 
     def get_last_name(self, obj):

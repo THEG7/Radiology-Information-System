@@ -9,6 +9,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect, HttpResponse
+from django_tables2 import RequestConfig
 from PIL import Image, ImageOps
 import base64
 import cStringIO
@@ -107,11 +108,19 @@ def user_logout(request):
 class HomePageView(TemplateView):
     template_name = 'main/home.html'
 
-    def get_context_data(self, **kwargs):
-        context = super(HomePageView, self).get_context_data(**kwargs)
-        messages.info(self.request, 'This is a demo of a message.')
-        return context
+    # def get_context_data(self, **kwargs):
+    #     context = super(HomePageView, self).get_context_data(**kwargs)
+    #     messages.info(self.request, 'This is a demo of a message.')
+    #     return context
+    def get(self, *args, **kwargs):
+        if not self.request.user.is_authenticated():
+            return HttpResponseRedirect('/ris/login')
+        return super(HomePageView, self).get(*args, **kwargs)
+        # RequestConfig(request).configure(table)
+        # return render(self.request, template_name, {'table': table})
+        
 
+@login_required
 def create_radiology_record(request):
     # template_name = 'main/create_record.html'
 
@@ -152,7 +161,9 @@ def create_radiology_record(request):
                 full_size=image_b64,
                 thumbnail=thumb_b64
             )
-            return HttpResponseRedirect('/ris/')
+            messages.success(request, "Radiology Record added successfully!")
+            return render(request,'main/home.html')
+
 
         else:
             print rr_form.errors, image_form.errors
