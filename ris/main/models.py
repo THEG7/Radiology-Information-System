@@ -18,6 +18,14 @@ class Person(models.Model):
         # managed = False
         db_table = 'persons'
 
+    @property
+    def full_name(self):
+        return "%s %s" % (self.first_name, self.last_name)
+
+    def __unicode__(self):
+        return u'%s (id=%s)' % (self.full_name, self.id)
+
+
 
 class User(models.Model):
     CLASS_CHOICES = (
@@ -37,6 +45,10 @@ class User(models.Model):
         # managed = False
         db_table = 'users'
 
+    def __unicode__(self):
+        return u'%s' % self.username
+
+
 
 class FamilyDoctor(models.Model):
     doctor = models.ForeignKey(Person, related_name='doctor', db_column="doctor_id", null=True)
@@ -46,6 +58,8 @@ class FamilyDoctor(models.Model):
         # managed = False
         db_table = 'family_doctor'
         unique_together = (("patient", "doctor"),)
+
+
 
 class PacsImage(models.Model):
     image_id = models.AutoField(primary_key=True)
@@ -57,6 +71,9 @@ class PacsImage(models.Model):
     class Meta:
         # managed = False
         db_table = 'pacs_images'
+
+    def __unicode__(self):
+        return u'%s' % self.image_id
 
 class RadiologyRecord(models.Model):
     record_id = models.AutoField(primary_key=True)
@@ -72,3 +89,6 @@ class RadiologyRecord(models.Model):
     class Meta:
         # managed = False
         db_table = 'radiology_record'
+
+    def __unicode__(self):
+        return u'%s' % self.record_id

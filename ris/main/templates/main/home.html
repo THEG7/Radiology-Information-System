@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-
+{% load render_table from django_tables2 %}
 {% block content %}
 
 <div class="navbar navbar-default">
@@ -121,12 +121,7 @@ $(function () {
       minView: 'month',
     }
   );
-  // $('#datetimepicker2').datetimepicker(
-  //   {
-  //     format: 'yyyy-mm-dd',
-  //     minView: 'month',
-  //   }
-  // );
+
   $("#datetimepicker1").on("dp.change", function (e) {
     $('#datetimepicker2').data("DateTimePicker").minDate(e.date);
   });
@@ -141,8 +136,8 @@ $(function () {
   });
 });
 
-
 </script>
 
+{% render_table table "bootstrap_table.html" %}
 
 {% endblock %}
