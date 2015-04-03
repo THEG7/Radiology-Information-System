@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = (
     'config',
     'main',
+    'jfu',
     'bootstrap3',
     'django_admin_bootstrapped.bootstrap3',
     'django_admin_bootstrapped',
@@ -108,14 +109,17 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_PATH = os.path.abspath(os.path.join(BASE_DIR, 'static'))
+# STATIC_ROOT = os.path.abspath(os.path.join(BASE_DIR, 'static'))
 STATICFILES_DIRS = (STATIC_PATH,)
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 
-TEMPLATE_CONTEXT_PROCESSOR = (
+TEMPLATE_CONTEXT_PROCESSORS = [
+    'django.core.context_processors.static',
     'django.core.context_processors.request',
-    'django.core.context_processors.static'
-)
+    'django.contrib.auth.context_processors.auth',
+
+]
 
 # Settings for django-bootstrap3
 BOOTSTRAP3 = {

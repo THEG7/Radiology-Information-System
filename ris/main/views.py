@@ -1,21 +1,34 @@
 from __future__ import unicode_literals
 
 from django.views.generic.base import TemplateView
+from django.views.generic.edit import UpdateView
 from django.shortcuts import render, render_to_response
 from django.template import RequestContext
-
+import os
+from django.conf import settings
+from django.core.files.storage import FileSystemStorage
 from django.contrib import messages
+from django.contrib.messages.views import SuccessMessageMixin
+
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
+from django.contrib.formtools.wizard.views import SessionWizardView
 from django.http import HttpResponseRedirect, HttpResponse
+
+from django.db.models import Q
 from django_tables2 import RequestConfig
 from PIL import Image, ImageOps
 import base64
 import cStringIO
 
-from main.forms import AuthUserForm, UserProfileForm, PersonForm, RadiologyRecordForm, UploadImageForm
+from django.views.decorators.http import require_POST
+from jfu.http import upload_receive, UploadResponse, JFUResponse
+
+from main.forms import AuthUserForm, UserProfileForm, PersonForm, RadiologyRecordForm, CreateRadiologyRecordForm, UploadImageForm
 from main.models import User, Person, RadiologyRecord, PacsImage, FamilyDoctor
+from main.tables import RecordSearchTable, EditableRecordSearchTable
+
 
 # Create your views here.
 
@@ -25,7 +38,6 @@ def register(request):
 
     registered = False
 
-    # If it's a HTTP POST, we're interested in processing form data.
     if request.method == 'POST':
         auth_user_form = AuthUserForm(data=request.POST)
         user_form = UserProfileForm(data=request.POST)
@@ -47,23 +59,16 @@ def register(request):
                 username=auth_user.username,
                 class_field=class_field)
 
-            # if 'picture' in request.FILES:
-            #     profile.picture = request.FILES['picture']
-
-            # Update our variable to tell the template registration was successful.
             registered = True
 
         else:
             print auth_user_form.errors, user_form.errors
 
-    # Not a HTTP POST, so we render our form using two ModelForm instances.
-    # These forms will be blank, ready for user input.
     else:
         auth_user_form = AuthUserForm()
         person_form = PersonForm()
         user_form = UserProfileForm()
 
-    # Render the template depending on the context.
     return render_to_response(
             'main/registration.html',
             {'user_form': user_form, 'auth_user_form': auth_user_form, 'person_form': person_form, 'registered': registered},
@@ -79,7 +84,6 @@ def user_login(request):
     if request.method == 'POST':
         auth_form = AuthenticationForm(data=request.POST)
 
-        # Use Django's machinery to attempt to see if the username/password
         if auth_form.is_valid():
             user = auth_form.get_user()
             if user.is_active:
@@ -113,70 +117,212 @@ class HomePageView(TemplateView):
     #     messages.info(self.request, 'This is a demo of a message.')
     #     return context
     def get(self, *args, **kwargs):
+        context = RequestContext(self.request)
+
         if not self.request.user.is_authenticated():
             return HttpResponseRedirect('/ris/login')
-        return super(HomePageView, self).get(*args, **kwargs)
-        # RequestConfig(request).configure(table)
-        # return render(self.request, template_name, {'table': table})
-        
+
+        try:
+            user = User.objects.get(auth_user__id=self.request.user.id)
+            person = user.person
+            # context = RequestContext(self.request)
+            if user.class_field == 'r':
+                table = EditableRecordSearchTable(RadiologyRecord.objects.all().filter(
+                    radiologist=person))
+            elif user.class_field == 'd':
+                table = EditableRecordSearchTable(RadiologyRecord.objects.all().filter(
+                    doctor=person))
+            else:
+                table = RecordSearchTable(RadiologyRecord.objects.all().filter(
+                    patient=person))
+        except Exception,e:
+            print str(e)
+            return HttpResponseRedirect('/ris/logout')
+        # return super(HomePageView, self).get(*args, **kwargs)
+        RequestConfig(self.request).configure(table)
+        return render(self.request,'main/home.html', {'table':table})
+
 
 @login_required
 def create_radiology_record(request):
     # template_name = 'main/create_record.html'
-
     context = RequestContext(request)
 
     # If it's a HTTP POST, we're interested in processing form data.
     if request.method == 'POST':
-        rr_form = RadiologyRecordForm(data=request.POST)
-        image_form = UploadImageForm(request.POST,request.FILES)
-        if  rr_form.is_valid() and image_form.is_valid():
+        form = CreateRadiologyRecordForm(request.POST, request.FILES)
+        if  form.is_valid():
 
-            patient = Person.objects.get(id=rr_form.cleaned_data['patient'])
-            doctor = Person.objects.get(id=rr_form.cleaned_data['doctor'])
-            radiologist = Person.objects.get(id=rr_form.cleaned_data['radiologist'])
-
+            patient = form.cleaned_data['patient']
+            doctor = form.cleaned_data['doctor']
+            radiologist = User.objects.get(auth_user__id=request.user.id).person
+            image = form.cleaned_data.pop('image')
             radiology_record = RadiologyRecord.objects.create(
-                patient=patient,
-                doctor=doctor,
                 radiologist=radiologist,
-                test_type = rr_form.cleaned_data['test_type'],
-                prescribing_date = rr_form.cleaned_data['prescribing_date'],
-                test_date = rr_form.cleaned_data['test_date'],
-                diagnosis = rr_form.cleaned_data['diagnosis'],
-                description = rr_form.cleaned_data['description'])
+                **form.cleaned_data)
 
             # build base64 encoding for images
-            image = image_form.cleaned_data['image'].read()
-            image_b64 = base64.b64encode(image)
+            if image:
 
-            thumb = ImageOps.fit(Image.open(cStringIO.StringIO(image)), (200,200), Image.ANTIALIAS)
-            thumb_buffer = cStringIO.StringIO()
-            thumb.save(thumb_buffer, format="JPEG")
-            thumb_b64 = base64.b64encode(thumb_buffer.getvalue())
+                image = image.read()
+                image_b64 = base64.b64encode(image)
 
-            # add pacs image to database
-            pacs_image = PacsImage.objects.create(
-                record=radiology_record,
-                full_size=image_b64,
-                thumbnail=thumb_b64
-            )
+                regular = ImageOps.fit(Image.open(cStringIO.StringIO(image)), (600,600), Image.ANTIALIAS)
+                regular_buffer = cStringIO.StringIO()
+                regular.save(regular_buffer, format="JPEG")
+                regular_b64 = base64.b64encode(regular_buffer.getvalue())
+
+                thumb = ImageOps.fit(Image.open(cStringIO.StringIO(image)), (200,200), Image.ANTIALIAS)
+                thumb_buffer = cStringIO.StringIO()
+                thumb.save(thumb_buffer, format="JPEG")
+                thumb_b64 = base64.b64encode(thumb_buffer.getvalue())
+
+                # add pacs image to database
+                pacs_image = PacsImage.objects.create(
+                    record=radiology_record,
+                    full_size=image_b64,
+                    regular_size=regular_b64,
+                    thumbnail=thumb_b64
+                )
             messages.success(request, "Radiology Record added successfully!")
-            return render(request,'main/home.html')
+            return HttpResponseRedirect('/ris/')
 
 
         else:
-            print rr_form.errors, image_form.errors
+            print form.errors
 
     # Not a HTTP POST, so we render our form using two ModelForm instances.
     # These forms will be blank, ready for user input.
     else:
-        rr_form = RadiologyRecordForm()
-        image_form = UploadImageForm()
+        form = CreateRadiologyRecordForm()
 
 
     # Render the template depending on the context.
     return render_to_response(
             'main/create_record.html',
-            {'rr_form': rr_form, 'image_form': image_form},
+            {'form': form},
             context)
+
+
+class UpdateRadiologyRecordView(SuccessMessageMixin, UpdateView):
+    template_name = 'main/update_record.html'
+    form_class = RadiologyRecordForm
+    model = RadiologyRecord
+    lookup_url_kwarg = "record_id"
+    success_url = '/ris/'
+    success_message = "successfully updated"
+
+    def get_object(self, queryset=None):
+        print self.lookup_url_kwarg
+        obj = RadiologyRecord.objects.get(record_id=self.kwargs.get(self.lookup_url_kwarg))
+        return obj
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        form.save()
+        return super(UpdateRadiologyRecordView, self).form_valid(form)
+
+
+class AddImageView(TemplateView):
+    template_name = 'main/upload_images.html'
+    form_class = UploadImageForm
+    success_message = "successfully added"
+
+    def get(self, *args, **kwargs):
+        context = RequestContext(self.request)
+
+        form = self.form_class
+        return render_to_response(
+                self.template_name,
+                {'form': form},
+                context)
+
+    def post(self, *args, **kwargs):
+        context = RequestContext(self.request)
+        form = self.form_class(self.request.POST, self.request.FILES)
+        if  form.is_valid():
+            image = form.cleaned_data.pop('image')
+
+            # build base64 encoding for images
+            if image:
+                image = image.read()
+                image_b64 = base64.b64encode(image)
+
+                regular = ImageOps.fit(Image.open(cStringIO.StringIO(image)), (600,600), Image.ANTIALIAS)
+                regular_buffer = cStringIO.StringIO()
+                regular.save(regular_buffer, format="JPEG")
+                regular_b64 = base64.b64encode(regular_buffer.getvalue())
+
+                thumb = ImageOps.fit(Image.open(cStringIO.StringIO(image)), (200,200), Image.ANTIALIAS)
+                thumb_buffer = cStringIO.StringIO()
+                thumb.save(thumb_buffer, format="JPEG")
+                thumb_b64 = base64.b64encode(thumb_buffer.getvalue())
+
+                record = RadiologyRecord.objects.get(
+                    record_id=self.request.GET.get('record_id')
+                )
+                # add pacs image to database
+                pacs_image = PacsImage.objects.create(
+                    record=record,
+                    full_size=image_b64,
+                    regular_size=regular_b64,
+                    thumbnail=thumb_b64
+                )
+            return HttpResponseRedirect('/ris/')
+
+
+class ThumbnailImageView(TemplateView):
+    template_name = 'main/view_thumbnails.html'
+    lookup_url_kwarg = "record_id"
+
+    def get(self, *args, **kwargs):
+        context = RequestContext(self.request)
+        pacs_images = PacsImage.objects.filter(record__record_id=self.kwargs.get(self.lookup_url_kwarg))
+        album = []
+        for img in pacs_images:
+            album.append({
+                'thumbnail': img.thumbnail,
+                'regular': ('/ris/images/%s/regular' % img.image_id),
+                'full': ('/ris/images/%s/full' % img.image_id)
+            })
+        return render_to_response(
+                self.template_name,
+                {'album': album},
+                context)
+
+
+class RegularImageView(TemplateView):
+    template_name = 'main/view_image.html'
+    lookup_url_kwarg = "image_id"
+
+    def get(self, *args, **kwargs):
+        context = RequestContext(self.request)
+        pacs_image = PacsImage.objects.get(image_id=self.kwargs.get(self.lookup_url_kwarg))
+
+        if not pacs_image.regular_size:
+            return HttpResponseRedirect('/ris/images/%s/full' % pacs_image.image_id)
+        return render_to_response(
+                self.template_name,
+                {'image':{
+                    'image':pacs_image.regular_size,
+                    'full': ('/ris/images/%s/full' % pacs_image.image_id)
+                    }
+                },
+                context)
+
+
+class FullImageView(RegularImageView):
+
+
+    def get(self, *args, **kwargs):
+        context = RequestContext(self.request)
+        pacs_image = PacsImage.objects.get(image_id=self.kwargs.get(self.lookup_url_kwarg))
+
+        return render_to_response(
+                self.template_name,
+                {'image':{
+                    'image':pacs_image.full_size,
+                    'full': '#'
+                    }
+                },
+                context)

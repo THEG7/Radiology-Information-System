@@ -1,6 +1,6 @@
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
-from main.views import HomePageView, create_radiology_record, register, user_login, user_logout
+import main.views as views#import HomePageView, create_radiology_record, register, user_login, user_logout, UpdateRadiologyRecord, UpdateRecordWizardView, FORMS
 
 urlpatterns = patterns('',
     # Examples:
@@ -8,10 +8,17 @@ urlpatterns = patterns('',
     # url(r'^blog/', include('blog.urls')),
 
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^ris/$', HomePageView.as_view(), name='home'),
-    url(r'^ris/register/$', register, name='register'),
-    url(r'^ris/login/$', user_login, name='login'),
-    url(r'^ris/logout/$', user_logout, name='logout'),
-    url(r'^ris/createrecord/$', create_radiology_record, name='create_record')
+    url(r'^ris/$', views.HomePageView.as_view(), name='home'),
+    url(r'^ris/register/$', views.register, name='register'),
+    url(r'^ris/login/$', views.user_login, name='login'),
+    url(r'^ris/logout/$', views.user_logout, name='logout'),
+    # url(r'^ris/record/create/$', views.UpdateRecordWizardView.as_view(views.FORMS), name='create_record'),
+    url(r'^ris/record/create/$', views.create_radiology_record, name='create_record'),
+    # url(r'^ris/record/search/$', views.HomePageView.as_view(), name='search_records'),
+    url(r'^ris/record/(?P<record_id>\d+)/update/$', views.UpdateRadiologyRecordView.as_view(), name='update_record'),
+    url(r'^ris/record/(?P<record_id>\d+)/images/$', views.ThumbnailImageView.as_view(), name='thumbnails'),
+    url(r'^ris/images/add/$', views.AddImageView.as_view(), name='add_image'),
+    url(r'^ris/images/(?P<image_id>\d+)/regular/$', views.RegularImageView.as_view(), name='regular_image'),
+    url(r'^ris/images/(?P<image_id>\d+)/full/$', views.FullImageView.as_view(), name='full_image'),
 
 )

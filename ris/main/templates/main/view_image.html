@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% load bootstrap3 %}
+
+{% block content %}
+    <h1 class="page-header">Image View</h1>
+    <div class="container" >
+      <a class="thumbnail" href="{{image.full}}">
+
+        <img class="img-responsive" src="data:image/jpeg;base64,{{image.image}}" alt="Embedded Image" style="margin: 0 auto;">
+
+      </a>
+
+      <hr>
+
+    </div>
+
+{% endblock %}
