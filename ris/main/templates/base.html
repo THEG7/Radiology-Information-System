@@ -1,6 +1,6 @@
 {% load url from future %}
 {% load staticfiles %}
-
+{% load bootstrap3 %}
 {% block head %}
 <head>
 
@@ -23,6 +23,8 @@
 
   <script type="text/javascript" src="{% static "js/bootstrap-datepicker.min.js" %}"></script>
   <script type="text/javascript" src="{% static "js/bootstrap-datetimepicker.js" %}"></script>
+
+  <!-- Glyphicons -->
 
 </head>
 {% endblock %}
@@ -52,7 +54,7 @@
             <ul class="nav navbar-nav">
 
               <li>
-                <a href="/ris/createrecord/">
+                <a href="/ris/record/create">
                 <i class="glyphicon glyphicon-plus"></i>
                 Add Radiology Record
                 <span class="mini quiet">(Radiologists only)</span>
@@ -62,7 +64,7 @@
               <li class="divider-vertical"></li>
 
               <li class="dropdown">
-                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Welcome, <strong>User</strong> <span class="caret"></span></a>
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">Welcome, <strong>{{user.username}}</strong> <span class="caret"></span></a>
                 <ul class="dropdown-menu">
 
                   <li><a href="/ris/password_change/">Change password</a></li>
@@ -81,8 +83,11 @@
 
     <body style="padding-top: 60px;padding-bottom: 40px;"
     <div class="container">
-
-
+      {% if messages %}
+        {% for message in messages %}
+        {% bootstrap_messages message %}
+        {% endfor %}
+      {% endif %}
         {% block content %}(no content){% endblock %}
     </div>
   </body>

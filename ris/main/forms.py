@@ -66,29 +66,50 @@ class PersonForm(forms.ModelForm):
         fields = ('first_name', 'last_name', 'address', 'email', 'phone')
 
 
-class RadiologyRecordForm(forms.Form):
+class UploadImageForm(forms.Form):
+    required_css_class = 'bootstrap3-req'
+    image = forms.ImageField(required=False, label='Image')
+
+
+class RadiologyRecordForm(forms.ModelForm):
     required_css_class = 'bootstrap3-req'
     patient = forms.IntegerField(label='Patient ID')
     doctor = forms.IntegerField(label='Doctor ID')
-    radiologist = forms.IntegerField(label='Radiologist ID')
     test_type = forms.CharField(max_length=24, required=False)
     prescribing_date = forms.DateField(initial=datetime.date.today)
     test_date = forms.DateField(initial=datetime.date.today)
     diagnosis = forms.CharField()
     description = forms.CharField(required=False)
 
+    class Meta:
+        model = RadiologyRecord
+        fields = ('patient', 'doctor', 'test_type', 'prescribing_date',
+            'test_date', 'diagnosis', 'description')
 
+    def clean_patient(self):
+        data = self.cleaned_data.get('patient')
+        if not data:
+             raise forms.ValidationError("You must enter a patient id")
+        try:
+            data = Person.objects.get(id=data)
+        except:
+            raise forms.ValidationError("Patient does not exist")
+        return data
 
-class UploadImageForm(forms.Form):
-    required_css_class = 'bootstrap3-req'
+    def clean_doctor(self):
+        data = self.cleaned_data.get('doctor')
+        if not data:
+             raise forms.ValidationError("You must enter a doctor id")
+        try:
+            data = Person.objects.get(id=data)
+        except:
+            raise forms.ValidationError("Doctor does not exist")
+        return data
+
+class CreateRadiologyRecordForm(RadiologyRecordForm):
     image = forms.ImageField(required=False, label='Image')
 
-
-class ArticleForm(forms.Form):
-    title = forms.CharField()
-    pub_date = forms.DateField()
-
-    def clean(self):
-        cleaned_data = super(ArticleForm, self).clean()
-        raise forms.ValidationError("This error was added to show the non field errors styling.")
-        return cleaned_data
+    class Meta:
+        model = RadiologyRecord
+        fields = ('patient', 'doctor', 'test_type', 'prescribing_date',
+            'test_date', 'diagnosis', 'description', 'image')

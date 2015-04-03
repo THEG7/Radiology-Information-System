@@ -1,22 +1,57 @@
+from django import forms
 from django.contrib import admin
+from django.utils.safestring import mark_safe
 
 from main.models import Person, User, FamilyDoctor, PacsImage, RadiologyRecord
 from django.contrib.auth.models import User as AuthUser
 from daterange_filter.filter import DateRangeFilter
+
+
 # Model options
+
 class PersonOptions(admin.ModelAdmin):
+
     readonly_fields = ('id',)
+    list_display = [
+        'first_name',
+        'last_name',
+        'address',
+        'email',
+        'phone',
+    ]
 
 
 class UserOptions(admin.ModelAdmin):
 
     list_display = ['class_field', 'auth_user', 'person', 'date_registered']
-    list_editable = ['class_field', 'auth_user', 'person', 'date_registered']
+    list_editable = ['class_field', 'person', 'date_registered']
     list_filter = ('class_field', ('date_registered', DateRangeFilter))
 
 
-class PacsImageOptions(admin.TabularInline):
+class PacsImageInline(admin.TabularInline):
     model = PacsImage
+
+
+class PacsImageOptions(admin.ModelAdmin):
+    list_display = [
+        'image_id',
+        'get_thumbnail',
+        'get_regular_size',
+        'get_full_size',
+
+    ]
+    def get_thumbnail(self, obj):
+        return mark_safe('<img alt="Embedded Image" src="data:image/jpeg;base64,%s" />' % obj.thumbnail)
+    get_thumbnail.short_description = 'First Name'
+
+    def get_regular_size(self, obj):
+        return mark_safe('<img alt="Embedded Image" src="data:image/jpeg;base64,%s" />' % obj.regular_size)
+    get_regular_size.short_description = 'Regular Size'
+
+    def get_full_size(self, obj):
+        return mark_safe('<img alt="Embedded Image" src="data:image/jpeg;base64,%s" />' % obj.full_size)
+    get_full_size.short_description = 'Full Size'
+
 
 class RadiologyRecordOptions(admin.ModelAdmin):
     list_display = [
@@ -29,7 +64,7 @@ class RadiologyRecordOptions(admin.ModelAdmin):
         'diagnosis'
     ]
     inlines = [
-            PacsImageOptions,
+            PacsImageInline,
     ]
     list_filter = (
         'diagnosis',
@@ -77,5 +112,5 @@ class RadiologyRecordOptions(admin.ModelAdmin):
 admin.site.register(Person, PersonOptions)
 admin.site.register(User, UserOptions)
 admin.site.register(FamilyDoctor)
-admin.site.register(PacsImage)
+admin.site.register(PacsImage, PacsImageOptions)
 admin.site.register(RadiologyRecord, RadiologyRecordOptions)
