@@ -1,6 +1,6 @@
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
-import main.views as views#import HomePageView, create_radiology_record, register, user_login, user_logout, UpdateRadiologyRecord, UpdateRecordWizardView, FORMS
+import main.views as views
 
 urlpatterns = patterns('',
     # Examples:

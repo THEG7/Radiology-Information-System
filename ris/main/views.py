@@ -9,7 +9,6 @@ from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
-
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
@@ -22,13 +21,12 @@ from PIL import Image, ImageOps
 import base64
 import cStringIO
 
-from django.views.decorators.http import require_POST
-from jfu.http import upload_receive, UploadResponse, JFUResponse
+from django.forms.models import model_to_dict
 
 from main.forms import AuthUserForm, UserProfileForm, PersonForm, RadiologyRecordForm, CreateRadiologyRecordForm, UploadImageForm
 from main.models import User, Person, RadiologyRecord, PacsImage, FamilyDoctor
 from main.tables import RecordSearchTable, EditableRecordSearchTable
-
+from main.utils import get_first
 
 # Create your views here.
 
@@ -112,10 +110,6 @@ def user_logout(request):
 class HomePageView(TemplateView):
     template_name = 'main/home.html'
 
-    # def get_context_data(self, **kwargs):
-    #     context = super(HomePageView, self).get_context_data(**kwargs)
-    #     messages.info(self.request, 'This is a demo of a message.')
-    #     return context
     def get(self, *args, **kwargs):
         context = RequestContext(self.request)
 
@@ -125,27 +119,38 @@ class HomePageView(TemplateView):
         try:
             user = User.objects.get(auth_user__id=self.request.user.id)
             person = user.person
-            # context = RequestContext(self.request)
+
             if user.class_field == 'r':
-                table = EditableRecordSearchTable(RadiologyRecord.objects.all().filter(
-                    radiologist=person))
+                query = RadiologyRecord.objects.all().filter(radiologist=person)
+                table = EditableRecordSearchTable(self.build_table_data(query))
             elif user.class_field == 'd':
-                table = EditableRecordSearchTable(RadiologyRecord.objects.all().filter(
-                    doctor=person))
+                query = RadiologyRecord.objects.all().filter(doctor=person)
+                table = EditableRecordSearchTable(self.build_table_data(query))
             else:
-                table = RecordSearchTable(RadiologyRecord.objects.all().filter(
-                    patient=person))
+                query = RadiologyRecord.objects.all().filter(patient=person)
+                table = EditableRecordSearchTable(self.build_table_data(query))
+
         except Exception,e:
             print str(e)
             return HttpResponseRedirect('/ris/logout')
-        # return super(HomePageView, self).get(*args, **kwargs)
         RequestConfig(self.request).configure(table)
         return render(self.request,'main/home.html', {'table':table})
+
+    def build_table_data(self, query):
+        data = []
+        for record in query:
+            record_dict = model_to_dict(record)
+            try:
+                record_dict['thumbnail'] = get_first(record.pacsimage_set.all()).thumbnail
+            except:
+                pass
+            data.append(record_dict)
+        return data
+
 
 
 @login_required
 def create_radiology_record(request):
-    # template_name = 'main/create_record.html'
     context = RequestContext(request)
 
     # If it's a HTTP POST, we're interested in processing form data.
@@ -287,7 +292,7 @@ class ThumbnailImageView(TemplateView):
             })
         return render_to_response(
                 self.template_name,
-                {'album': album},
+                {'album': album, 'record_id':self.kwargs.get(self.lookup_url_kwarg)},
                 context)
 
 
@@ -305,8 +310,9 @@ class RegularImageView(TemplateView):
                 self.template_name,
                 {'image':{
                     'image':pacs_image.regular_size,
-                    'full': ('/ris/images/%s/full' % pacs_image.image_id)
-                    }
+                    'full': ('/ris/images/%s/full' % pacs_image.image_id),
+                    },
+                 'record_id':pacs_image.record.record_id
                 },
                 context)
 
@@ -323,6 +329,7 @@ class FullImageView(RegularImageView):
                 {'image':{
                     'image':pacs_image.full_size,
                     'full': '#'
-                    }
+                    },
+                 'record_id':pacs_image.record.record_id
                 },
                 context)
