@@ -7,9 +7,10 @@ class ThumbnailMixin(tables.Table):
     preview = tables.TemplateColumn(
 '''
 <a class="thumbnail" href="/ris/record/{{record.record_id}}/images">
-    <img class="img-responsive" src="data:image/jpeg;base64,{{record.thumbnail}}" alt="no image added" style="width: 50%; height: 50%">
+    <img class="img-responsive" src="data:image/jpeg;base64,{{record.thumbnail}}" alt="no image" style="width: 50%; height: 50%">
 </a>
-'''
+''',
+orderable=False
     )
     class Meta:
         model = PacsImage
@@ -23,9 +24,9 @@ class RecordSearchTable(ThumbnailMixin, tables.Table):
 
     class Meta:
         model = RadiologyRecord
-        fields = ('record_id', 'patient', 'doctor', 'radiologist', 'test_type', 'prescribing_date', 'test_date', 'diagnosis')
+        fields = ('record_id', 'rank', 'patient', 'doctor', 'radiologist', 'test_type', 'prescribing_date', 'test_date', 'diagnosis')
 
-        sequence = ('record_id', 'patient', 'doctor', 'radiologist', 'test_type', 'prescribing_date', 'test_date', 'diagnosis', '...')
+        sequence = ('record_id', 'rank', 'patient', 'doctor', 'radiologist', 'test_type', 'prescribing_date', 'test_date', 'diagnosis', '...')
 
 class EditableRecordSearchTable(RecordSearchTable):
     # TODO: It would probably be better to seperate this view from the model/controller logic.. meh whatever
@@ -44,4 +45,6 @@ class EditableRecordSearchTable(RecordSearchTable):
         </li>
     </ul>
 </div>
-''')
+''',
+orderable=False
+    )
