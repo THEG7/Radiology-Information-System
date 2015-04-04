@@ -75,6 +75,8 @@ class PacsImage(models.Model):
     def __unicode__(self):
         return u'%s' % self.image_id
 
+
+
 class RadiologyRecord(models.Model):
     record_id = models.AutoField(primary_key=True)
     patient = models.ForeignKey(Person, related_name='patient_r', db_column="patient_id", null=True)
