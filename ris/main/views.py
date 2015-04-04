@@ -24,9 +24,9 @@ from django.forms.models import model_to_dict
 
 from main.forms import AuthUserForm, UserProfileForm, PersonForm, RadiologyRecordForm, CreateRadiologyRecordForm, UploadImageForm
 from main.models import User, Person, RadiologyRecord, PacsImage, FamilyDoctor
-from main.tables import RecordSearchTable, EditableRecordSearchTable
+from main.tables import RecordSearchTable, EditableRecordSearchTable, DataCubeTable
 from main.utils import get_first, rank_function, build_search_query
-
+from main.datacube import olap_aggregator
 # Create your views here.
 
 # adapted from http://www.tangowithdjango.com/book/chapters/login.html
@@ -71,7 +71,9 @@ def register(request):
             {'user_form': user_form, 'auth_user_form': auth_user_form, 'person_form': person_form, 'registered': registered},
             context)
 
-
+'''
+login view
+'''
 def user_login(request):
     context = RequestContext(request)
     logged_in = request.user.is_authenticated()
@@ -167,7 +169,6 @@ class HomePageView(TemplateView):
 class SearchRecordsView(HomePageView):
     template_name = 'main/home.html'
     def get(self, *args, **kwargs):
-        print self.request
         context = RequestContext(self.request)
         if not self.request.user.is_authenticated():
             return HttpResponseRedirect('/ris/login')
@@ -224,6 +225,30 @@ class SearchRecordsView(HomePageView):
             results = results.filter(prescribing_date__range=[params.get('from-pdate', ''), params.get('to-pdate', '')])
 
         return results
+
+
+class DataCubeView(TemplateView):
+    template_name = 'main/olap.html'
+    def get(self, *args, **kwargs):
+        context = RequestContext(self.request)
+        if not self.request.user.is_authenticated():
+            return HttpResponseRedirect('/ris/login')
+
+        user = User.objects.get(auth_user__id=self.request.user.id)
+        params = self.request.GET
+        patient_id = params.get('use-patient')
+        test_type = params.get('use-test-type')
+        use_date = params.get('use-date')
+        test_date = params.get('test-date')
+
+        results= olap_aggregator(patient_id, test_type, test_date)
+        # results= olap_aggregator(patient_id=user.person.id, test_type="flu", test_date="Week", start_date=None, end_date=None)
+
+        table = DataCubeTable(results)
+
+        RequestConfig(self.request).configure(table)
+        return render(self.request,'main/olap.html', {'table':table, 'header':'Aggregated Results'})
+    # patient_id=None, test_type=None, test_date=None,
 
 
 @login_required
@@ -295,7 +320,6 @@ class UpdateRadiologyRecordView(SuccessMessageMixin, UpdateView):
     success_message = "successfully updated"
 
     def get_object(self, queryset=None):
-        print self.lookup_url_kwarg
         obj = RadiologyRecord.objects.get(record_id=self.kwargs.get(self.lookup_url_kwarg))
         return obj
 

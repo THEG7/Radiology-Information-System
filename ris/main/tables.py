@@ -29,7 +29,7 @@ class RecordSearchTable(ThumbnailMixin, tables.Table):
         sequence = ('record_id', 'rank', 'patient', 'doctor', 'radiologist', 'test_type', 'prescribing_date', 'test_date', 'diagnosis', '...')
 
 class EditableRecordSearchTable(RecordSearchTable):
-    # TODO: It would probably be better to seperate this view from the model/controller logic.. meh whatever
+    # TODO: It would probably be better to seperate this view from the model/controller logic..
     edit = tables.TemplateColumn(
 '''
 <div class="dropdown">
@@ -48,3 +48,10 @@ class EditableRecordSearchTable(RecordSearchTable):
 ''',
 orderable=False
     )
+
+class DataCubeTable(tables.Table):
+# 'Count':1L,'test_type':u'xyz','Patient':2,'test_date':'2015-03-30'
+    patient = tables.Column()
+    test_type = tables.Column()
+    test_date = tables.Column()
+    count = tables.Column()
