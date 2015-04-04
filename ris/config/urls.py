@@ -1,6 +1,8 @@
 from django.conf.urls import patterns, include, url
 from django.contrib import admin
 import main.views as views
+from django.contrib.admin.views.decorators import staff_member_required
+
 
 urlpatterns = patterns('',
     # Examples:
@@ -20,6 +22,6 @@ urlpatterns = patterns('',
     url(r'^ris/images/add/$', views.AddImageView.as_view(), name='add_image'),
     url(r'^ris/images/(?P<image_id>\d+)/regular/$', views.RegularImageView.as_view(), name='regular_image'),
     url(r'^ris/images/(?P<image_id>\d+)/full/$', views.FullImageView.as_view(), name='full_image'),
-    url(r'^ris/aggregate/$', views.FullImageView.as_view(), name='full_image'),
+    url(r'^ris/olap/$', staff_member_required(views.DataCubeView.as_view()), name='olap'),
 
 )
