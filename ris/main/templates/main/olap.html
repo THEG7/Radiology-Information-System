@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% load render_table from django_tables2 %}
+{% block content %}
+
+{% csrf_token %}
+<div class="navbar navbar-default">
+  <div class="navbar-inner">
+
+    <div class="navbar-header">
+
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#content-navbar-collapse" aria-expanded="false" aria-controls="navbar">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+
+
+
+      <span class="navbar-brand">Search Records</span>
+
+
+    </div>
+
+    <div id="content-navbar-collapse" class="navbar-collapse collapse">
+
+      <form class="navbar-form navbar-right" role="search" id="changelist-search" action="/ris/record/search/" method="get">
+        {% csrf_token %}
+
+        <button type="submit" class="btn btn-default">Analyze</button>
+        <div class="dropdown">
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Date Range<span class="caret"></span></a>
+          <ul class="dropdown-menu ">
+            <span>
+              <center>
+
+                <div class="form-group">
+                  <p> Date Tested <input type="checkbox" name="use-tdate"></p>
+
+                  <div>
+                    <p>From</p>
+                    <div class="form-group">
+                      <div class='input-group date' id='datetimepicker1'>
+                        <input type='text' class="form-control" name="from-tdate"/>
+                        <span class="input-group-addon">
+                          <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <p>To</p>
+                    <div class="form-group">
+                      <div class='input-group date' id='datetimepicker2'>
+                        <input type='text' class="form-control" name="to-tdate"/>
+                        <span class="input-group-addon">
+                          <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <p> Prescribing Date <input type="checkbox" name="use-pdate"></p>
+
+                  <div>
+                    <p>From</p>
+                    <div class="form-group">
+                      <div class='input-group date' id='datetimepicker3'>
+                        <input type='text' class="form-control" name="from-pdate"/>
+                        <span class="input-group-addon">
+                          <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <p>To</p>
+                    <div class="form-group">
+                      <div class='input-group date' id='datetimepicker4'>
+                        <input type='text' class="form-control" name="to-pdate" />
+                        <span class="input-group-addon">
+                          <span class="glyphicon glyphicon-calendar"></span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </center>
+
+            </span>
+
+          </ul>
+        </div>
+      </div>
+      </form>
+      <script type="text/javascript">document.getElementById("searchbar").focus();</script>
+
+
+    </div>
+
+  </div>
+</div>
+<script type="text/javascript">
+$(function () {
+  $('.input-group.date').datetimepicker(
+    {
+      format: 'yyyy-mm-dd',
+      minView: 'month',
+    }
+  );
+
+  $("#datetimepicker1").on("dp.change", function (e) {
+    $('#datetimepicker2').data("DateTimePicker").minDate(e.date);
+  });
+  $("#datetimepicker2").on("dp.change", function (e) {
+    $('#datetimepicker1').data("DateTimePicker").maxDate(e.date);
+  });
+  $("#datetimepicker3").on("dp.change", function (e) {
+    $('#datetimepicker4').data("DateTimePicker").minDate(e.date);
+  });
+  $("#datetimepicker4").on("dp.change", function (e) {
+    $('#datetimepicker3').data("DateTimePicker").maxDate(e.date);
+  });
+});
+</script>
+
+<script type="text/javascript">
+    $('.dropdown-menu input, .dropdown-menu label').click(function(e) {
+        e.stopPropagation();
+    });
+</script>
+
+<h2 class="page-header">{{ header }}</h2>
+
+{% render_table table "bootstrap_table.html" %}
+
+{% endblock %}
