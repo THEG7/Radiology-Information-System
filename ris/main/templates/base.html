@@ -61,6 +61,13 @@
                 </a>
               </li>
 
+              <li>
+                <a href="/ris/record/create">
+                Analyze Records
+                <span class="mini quiet">(Admin only)</span>
+                </a>
+              </li>
+
               <li class="divider-vertical"></li>
 
               <li class="dropdown">
@@ -88,7 +95,10 @@
         {% bootstrap_messages message %}
         {% endfor %}
       {% endif %}
-        {% block content %}(no content){% endblock %}
+        {% block content %}
+
+        (no content)
+        {% endblock %}
     </div>
   </body>
 {% endblock %}
