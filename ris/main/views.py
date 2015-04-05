@@ -169,8 +169,6 @@ class SearchRecordsView(HomePageView):
     template_name = 'main/home.html'
     def get(self, *args, **kwargs):
         context = RequestContext(self.request)
-        if not self.request.user.is_authenticated():
-            return HttpResponseRedirect('/ris/login')
 
         user = User.objects.get(auth_user__id=self.request.user.id)
         results = self.process_search_query()
@@ -231,8 +229,7 @@ class DataCubeView(TemplateView):
 
     def get(self, *args, **kwargs):
         context = RequestContext(self.request)
-        if not self.request.user.is_authenticated():
-            return HttpResponseRedirect('/ris/login')
+
 
         results = []
         params = self.request.GET
@@ -255,9 +252,6 @@ class DataCubeView(TemplateView):
 @login_required
 def create_radiology_record(request):
     context = RequestContext(request)
-    user = User.objects.get(auth_user__id=self.request.user.id)
-    if not(user.class_field == 'r' or request.user.is_superuser):
-        return HttpResponseRedirect('/ris/')
 
     # If it's a HTTP POST, we're interested in processing form data.
     if request.method == 'POST':
