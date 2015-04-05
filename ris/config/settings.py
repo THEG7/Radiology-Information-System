@@ -32,7 +32,6 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = (
     'config',
     'main',
-    'jfu',
     'bootstrap3',
     'django_admin_bootstrapped.bootstrap3',
     'django_admin_bootstrapped',
