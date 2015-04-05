@@ -2,8 +2,7 @@ from main.models import RadiologyRecord
 from django.db import models, connection
 
 def olap_aggregator(patient_id=None, test_type=None, test_date=None, start_date=None, end_date=None):
-    test_date = test_date.lower()
-    assert test_date in [False, 'year', 'week', 'month']
+    assert test_date in [ False, 'year', 'week', 'month']
 
     dbquery = "SELECT {0}, {1}, {2}, count(*) FROM radiology_record {4} GROUP BY {3} {5};"
 
@@ -48,7 +47,7 @@ def olap_aggregator(patient_id=None, test_type=None, test_date=None, start_date=
             if db_row[0] is None:
                 row["patient"] = "&lt;No Owner&gt;"
             else:
-                row["Patient"] = db_row[0]
+                row["patient"] = db_row[0]
         if test_type:
             if db_row[1] is None:
                 row["test_type"] = "&lt;No test_type&gt;"

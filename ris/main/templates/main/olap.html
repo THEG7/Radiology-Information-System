@@ -17,74 +17,48 @@
 
 
 
-      <span class="navbar-brand">Search Records</span>
+      <span class="navbar-brand">Analyze Records</span>
 
 
     </div>
 
     <div id="content-navbar-collapse" class="navbar-collapse collapse">
 
-      <form class="navbar-form navbar-right" role="search" id="changelist-search" action="/ris/record/search/" method="get">
+      <form class="navbar-form navbar-right" role="search" id="changelist-search" action="/ris/olap/" method="get">
         {% csrf_token %}
 
         <button type="submit" class="btn btn-default">Analyze</button>
         <div class="dropdown">
-          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Date Range<span class="caret"></span></a>
+          <a href="#" class="dropdown-toggle" data-toggle="dropdown">Select Options<span class="caret"></span></a>
           <ul class="dropdown-menu ">
             <span>
               <center>
 
                 <div class="form-group">
-                  <p> Date Tested <input type="checkbox" name="use-tdate"></p>
+                  <p> Use Patient ID <input type="checkbox" name="use-patient"></p>
+
+
+                  <p> Use Test Type <input type="checkbox" name="use-test-type"></p>
 
                   <div>
-                    <p>From</p>
+                    <p>Use Date</p>
                     <div class="form-group">
-                      <div class='input-group date' id='datetimepicker1'>
-                        <input type='text' class="form-control" name="from-tdate"/>
-                        <span class="input-group-addon">
-                          <span class="glyphicon glyphicon-calendar"></span>
-                        </span>
+                      <div class="radio ">
+                        <label><input checked type="radio" name="use-test-date" value="False">None</label>
                       </div>
-                    </div>
-                  </div>
-                  <div>
-                    <p>To</p>
-                    <div class="form-group">
-                      <div class='input-group date' id='datetimepicker2'>
-                        <input type='text' class="form-control" name="to-tdate"/>
-                        <span class="input-group-addon">
-                          <span class="glyphicon glyphicon-calendar"></span>
-                        </span>
+                      <div class="radio">
+                        <label><input type="radio" name="use-test-date" value="week">Week</label>
                       </div>
-                    </div>
-                  </div>
-                </div>
-                <div class="form-group">
-                  <p> Prescribing Date <input type="checkbox" name="use-pdate"></p>
+                      <div class="radio">
+                        <label><input type="radio" name="use-test-date" value="month">Month</label>
+                      </div>
+                      <div class="radio">
+                        <label><input type="radio" name="use-test-date" value="year">Year</label>
+                      </div>
 
-                  <div>
-                    <p>From</p>
-                    <div class="form-group">
-                      <div class='input-group date' id='datetimepicker3'>
-                        <input type='text' class="form-control" name="from-pdate"/>
-                        <span class="input-group-addon">
-                          <span class="glyphicon glyphicon-calendar"></span>
-                        </span>
-                      </div>
                     </div>
                   </div>
-                  <div>
-                    <p>To</p>
-                    <div class="form-group">
-                      <div class='input-group date' id='datetimepicker4'>
-                        <input type='text' class="form-control" name="to-pdate" />
-                        <span class="input-group-addon">
-                          <span class="glyphicon glyphicon-calendar"></span>
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+
                 </div>
               </center>
 

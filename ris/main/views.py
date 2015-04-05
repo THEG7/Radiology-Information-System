@@ -103,7 +103,6 @@ def user_login(request):
 @login_required
 def user_logout(request):
     logout(request)
-
     return HttpResponseRedirect('/ris/')
 
 
@@ -170,8 +169,6 @@ class SearchRecordsView(HomePageView):
     template_name = 'main/home.html'
     def get(self, *args, **kwargs):
         context = RequestContext(self.request)
-        if not self.request.user.is_authenticated():
-            return HttpResponseRedirect('/ris/login')
 
         user = User.objects.get(auth_user__id=self.request.user.id)
         results = self.process_search_query()
@@ -229,19 +226,20 @@ class SearchRecordsView(HomePageView):
 
 class DataCubeView(TemplateView):
     template_name = 'main/olap.html'
+
     def get(self, *args, **kwargs):
         context = RequestContext(self.request)
-        if not self.request.user.is_authenticated():
-            return HttpResponseRedirect('/ris/login')
 
-        user = User.objects.get(auth_user__id=self.request.user.id)
+
+        results = []
         params = self.request.GET
-        patient_id = params.get('use-patient')
-        test_type = params.get('use-test-type')
-        use_date = params.get('use-date')
-        test_date = params.get('test-date')
-
-        results= olap_aggregator(patient_id, test_type, test_date)
+        if params:
+            patient_id = params.get('use-patient')
+            test_type = params.get('use-test-type')
+            test_date = params.get('use-test-date')
+            if test_date == 'False':
+                test_date = False
+            results= olap_aggregator(patient_id, test_type, test_date)
         # results= olap_aggregator(patient_id=user.person.id, test_type="flu", test_date="Week", start_date=None, end_date=None)
 
         table = DataCubeTable(results)
