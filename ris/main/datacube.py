@@ -4,7 +4,7 @@ from django.db import models, connection
 def olap_aggregator(patient_id=None, test_type=None, test_date=None, start_date=None, end_date=None):
     assert test_date in [ False, 'year', 'week', 'month']
 
-    dbquery = "SELECT {0}, {1}, {2}, count(*) FROM radiology_record {4} GROUP BY {3} {5};"
+    dbquery = "SELECT {0}, {1}, {2}, count(pacs_images.image_id) FROM radiology_record, pacs_images {4} GROUP BY {3} {5};"
 
     zero = "patient_id" if patient_id else "null"
     one = "test_type" if test_type else "null"
@@ -18,9 +18,9 @@ def olap_aggregator(patient_id=None, test_type=None, test_date=None, start_date=
     if len(three) > 0: three = three[:-2]
 
     # WHERE clause
-    four = ""
+    four = "WHERE pacs_images.record_id = radiology_record.record_id"
     if start_date or end_date:
-        four += "WHERE "
+        four += " AND "
     if start_date:
         four += "test_date >= '%s' " % start_date
     elif end_date:
@@ -45,7 +45,7 @@ def olap_aggregator(patient_id=None, test_type=None, test_date=None, start_date=
         row = dict()
         if patient_id:
             if db_row[0] is None:
-                row["patient"] = "&lt;No Owner&gt;"
+                row["patient"] = "&lt;No patient&gt;"
             else:
                 row["patient"] = db_row[0]
         if test_type:
@@ -64,9 +64,5 @@ def olap_aggregator(patient_id=None, test_type=None, test_date=None, start_date=
             elif test_date == 'week':
                 row["test_date"] = "%d-%02d-%02d" % (db_row[2].year, db_row[2].month, db_row[2].day)
 
-        row["count"] = db_row[3]
+        row["image_count"] = db_row[3]
         data.append(row)
-
-    print(dbquery)
-    print data
-    return data

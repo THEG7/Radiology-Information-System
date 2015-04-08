@@ -9,30 +9,30 @@ def get_first(iterable, default=None):
     return default
 
 
-def full_name_frequency(query, keywords):
+def full_name_frequency(record, keywords):
     frequency = 0
     for word in keywords:
-        frequency += (query.filter(patient__first_name__icontains=word) | query.filter(patient__last_name__icontains=word)).count()
+        frequency += (record.patient.first_name.count(word) + record.patient.last_name.count(word))/2
     return frequency
 
-def diagnosis_frequency(query, keywords):
+def diagnosis_frequency(record, keywords):
     frequency = 0
     for word in keywords:
-        frequency += query.filter(diagnosis__icontains=word).count()
+        frequency += record.diagnosis.count(word)
     return frequency
 
-def description_frequency(query, keywords):
+def description_frequency(record, keywords):
     frequency = 0
     for word in keywords:
-        frequency += query.filter(description__icontains=word).count()
+        frequency += record.description.count(word)
     return frequency
 
  # Rank(record_id) = 6*frequency(patient_name) + 3*frequency(diagnosis) + frequency(description)
-def rank_function(query, query_string):
+def rank_function(record, query_string):
     key_words = normalize_query(query_string)
-    name_weight = (6*full_name_frequency(query, key_words))
-    diagnosis_weight = (3*diagnosis_frequency(query, key_words))
-    description_weight = description_frequency(query, key_words)
+    name_weight = (6*full_name_frequency(record, key_words))
+    diagnosis_weight = (3*diagnosis_frequency(record, key_words))
+    description_weight = description_frequency(record, key_words)
     return (name_weight + diagnosis_weight + description_weight)
 
 
