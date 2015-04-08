@@ -38,7 +38,7 @@ def olap_aggregator(patient_id=None, test_type=None, test_date=None, start_date=
     cursor = connection.cursor()
     cursor.execute(dbquery)
     result = cursor.fetchall()
-
+    print result
     data = list()
 
     for db_row in result:
@@ -66,3 +66,4 @@ def olap_aggregator(patient_id=None, test_type=None, test_date=None, start_date=
 
         row["image_count"] = db_row[3]
         data.append(row)
+    return data
