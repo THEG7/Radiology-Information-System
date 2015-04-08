@@ -115,8 +115,11 @@ class HomePageView(TemplateView):
 
         if not self.request.user.is_authenticated():
             return redirect('/ris/login')
+        try:
+            user = User.objects.get(auth_user__id=self.request.user.id)
+        except:
+            return redirect('/ris/logout')
 
-        user = User.objects.get(auth_user__id=self.request.user.id)
         results = RadiologyRecord.objects.all()
         results = self.filter_visibility(results)
 

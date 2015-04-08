@@ -21,6 +21,7 @@ class RecordSearchTable(ThumbnailMixin, tables.Table):
     patient = tables.Column(accessor='patient.full_name', order_by=("patient.last_name",))
     doctor = tables.Column(accessor='doctor.full_name', order_by=("doctor.last_name",))
     radiologist = tables.Column(accessor='radiologist.full_name', order_by=("radiologist.last_name",))
+    rank = tables.Column(verbose_name="Relevance")
 
     class Meta:
         model = RadiologyRecord
