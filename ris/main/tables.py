@@ -21,6 +21,7 @@ class RecordSearchTable(ThumbnailMixin, tables.Table):
     patient = tables.Column(accessor='patient.full_name', order_by=("patient.last_name",))
     doctor = tables.Column(accessor='doctor.full_name', order_by=("doctor.last_name",))
     radiologist = tables.Column(accessor='radiologist.full_name', order_by=("radiologist.last_name",))
+    rank = tables.Column(verbose_name="Relevance")
 
     class Meta:
         model = RadiologyRecord
@@ -51,7 +52,7 @@ orderable=False
 
 class DataCubeTable(tables.Table):
 # 'Count':1L,'test_type':u'xyz','Patient':2,'test_date':'2015-03-30'
-    patient = tables.Column()
+    patient = tables.Column(verbose_name="Patient ID")
     test_type = tables.Column()
     test_date = tables.Column()
-    count = tables.Column()
+    image_count = tables.Column()

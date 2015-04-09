@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 from django.views.generic.base import TemplateView
 from django.views.generic.edit import UpdateView
-from django.shortcuts import render, render_to_response
+from django.shortcuts import render, render_to_response, redirect
 from django.template import RequestContext
 import os
 from django.conf import settings
@@ -75,10 +75,10 @@ def register(request):
 login view
 '''
 def user_login(request):
-    context = RequestContext(request)
     logged_in = request.user.is_authenticated()
     if logged_in:
-        return HttpResponseRedirect('/ris/')
+        messages.info(request, "You are already logged in")
+        return redirect('/ris/')
 
     if request.method == 'POST':
         auth_form = AuthenticationForm(data=request.POST)
@@ -87,7 +87,8 @@ def user_login(request):
             user = auth_form.get_user()
             if user.is_active:
                 login(request, user)
-                return HttpResponseRedirect('/ris/')
+                messages.add_message(request, messages.INFO, "Your Message")
+                return redirect('/ris/')
             else:
                 return HttpResponse("Your account is disabled.")
         else:
@@ -96,6 +97,7 @@ def user_login(request):
 
     else:
         auth_form = AuthenticationForm()
+    context = RequestContext(request)
     return render_to_response('main/login.html', {'auth_form':auth_form}, context)
 
 
@@ -103,19 +105,21 @@ def user_login(request):
 @login_required
 def user_logout(request):
     logout(request)
-    return HttpResponseRedirect('/ris/')
+    return redirect('/ris/')
 
 
 
 class HomePageView(TemplateView):
     template_name = 'main/home.html'
     def get(self, *args, **kwargs):
-        context = RequestContext(self.request)
 
         if not self.request.user.is_authenticated():
-            return HttpResponseRedirect('/ris/login')
+            return redirect('/ris/login')
+        try:
+            user = User.objects.get(auth_user__id=self.request.user.id)
+        except:
+            return redirect('/ris/logout')
 
-        user = User.objects.get(auth_user__id=self.request.user.id)
         results = RadiologyRecord.objects.all()
         results = self.filter_visibility(results)
 
@@ -128,7 +132,10 @@ class HomePageView(TemplateView):
             table = RecordSearchTable(self.build_table_data(results))
 
         RequestConfig(self.request).configure(table)
-        return render(self.request,'main/home.html', {'table':table, 'header': ''})
+        return render_to_response(
+            'main/home.html', {'table':table, 'header': ''},
+            context_instance=RequestContext(self.request)
+        )
 
     def build_table_data(self, query):
         data = []
@@ -141,7 +148,7 @@ class HomePageView(TemplateView):
             record_dict['rank'] = None
 
             if query_string:
-                record_dict['rank'] = rank_function(query, query_string)
+                record_dict['rank'] = rank_function(record, query_string)
 
             try:
                 record_dict['thumbnail'] = get_first(record.pacsimage_set.all()).thumbnail
@@ -209,7 +216,6 @@ class SearchRecordsView(HomePageView):
 
         # filter by test date if required by user
         if params.get('use-tdate', '') == 'on':
-            print params
             results = results.filter(
                 test_date__range=[
                     str(params.get('from-tdate', '')),
@@ -251,6 +257,10 @@ class DataCubeView(TemplateView):
 
 @login_required
 def create_radiology_record(request):
+    user = User.objects.get(auth_user__id=request.user.id)
+    if not (user.class_field == 'r' or user.auth_user.is_superuser):
+        return redirect('/ris/')
+
     context = RequestContext(request)
 
     # If it's a HTTP POST, we're interested in processing form data.
@@ -290,7 +300,7 @@ def create_radiology_record(request):
                     thumbnail=thumb_b64
                 )
             messages.success(request, "Radiology Record added successfully!")
-            return HttpResponseRedirect('/ris/')
+            return redirect('/ris/')
 
 
         else:
@@ -300,7 +310,6 @@ def create_radiology_record(request):
     # These forms will be blank, ready for user input.
     else:
         form = CreateRadiologyRecordForm()
-
 
     # Render the template depending on the context.
     return render_to_response(
@@ -373,7 +382,7 @@ class AddImageView(TemplateView):
                     regular_size=regular_b64,
                     thumbnail=thumb_b64
                 )
-            return HttpResponseRedirect('/ris/')
+            return redirect('/ris/')
 
 
 class ThumbnailImageView(TemplateView):
